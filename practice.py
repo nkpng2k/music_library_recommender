@@ -1,4 +1,3 @@
-import numpy as np
 import os
 import librosa
 
@@ -12,9 +11,25 @@ def recursive_file_gen(mydir):
             yield os.path.join(root, item)
 
 
-all_music = recursive_file_gen(starting_dir)
-all_music
+def gen_music_load(all_music):
+    for item in all_music:
+        y, sr = librosa.load(item)
+        yield y, sr
 
 
-print np.sqrt(2.0)
-librosa.audio
+def get_tempo(loaded_gen):
+    for y, sr in loaded_gen:
+        tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+        yield tempo, beat_frames
+
+
+all_music = list(recursive_file_gen(starting_dir))
+
+all_tempos = get_tempo(gen_music_load(all_music))
+
+count = 0
+for tempo, beat_frames in all_tempos:
+    count += 1
+    print tempo, beat_frames
+    if count > 5:
+        break
